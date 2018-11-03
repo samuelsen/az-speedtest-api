@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SpeedTestApi.Models;
+using SpeedTestApi.Services;
 
 namespace SpeedTestApi.Controllers
 {
@@ -11,6 +12,12 @@ namespace SpeedTestApi.Controllers
     [ApiController]
     public class SpeedTestController : ControllerBase
     {
+        private readonly ISpeedTestEvents _eventHub;
+
+        public SpeedTestController(ISpeedTestEvents eventHub)
+        {
+            _eventHub = eventHub;
+        }
         [Route("ping")]
         [HttpGet]
         public ActionResult<string> Ping()
@@ -19,8 +26,10 @@ namespace SpeedTestApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult<string> UploadSpeedTest([FromBody] TestResult speedTest)
+        public async Task<ActionResult<string>> UploadSpeedTest([FromBody] TestResult speedTest)
         {
+            await _eventHub.PublishSpeedTest(speedTest);
+
             var speedTestData = $"Got a TestResult from { speedTest.User } with download { speedTest.Data.Speeds.Download } Mbps.";
 
             return Ok(speedTestData);
