@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpeedTestApi.Services;
+using Google.Cloud.PubSub.V1;
 
 namespace SpeedTestApi
 {
@@ -30,9 +31,17 @@ namespace SpeedTestApi
 
             var connectionString = Configuration.GetValue<string>("EventHub:ConnectionString");
             var entityPath = Configuration.GetValue<string>("EventHub:EntityPath");
+            var projectId = Configuration.GetValue<string>("GCP:projectId");
+            var topicId = Configuration.GetValue<string>("GCP:topicId");
+
             services.AddScoped<ISpeedTestEvents, SpeedTestEvents>(cts =>
             {
                 return new SpeedTestEvents(connectionString, entityPath);
+            });
+            
+            services.AddScoped<ISpeedTestEventsGCP, SpeedTestEventsGcp>(cts =>
+            {
+                return new SpeedTestEventsGcp(projectId, topicId);
             });
         }
 
